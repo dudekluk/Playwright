@@ -7,6 +7,8 @@ export class LoginPage {
   passwordInput = this.page.getByTestId('password-input');
   loginButton = this.page.getByTestId('login-button');
 
+  
+
   async login(userLogin: string, userPassword: string) {
     await this.loginInput.fill(userLogin);
     await this.passwordInput.fill(userPassword);
