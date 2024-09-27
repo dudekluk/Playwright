@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { LoginPage } from '../pages/Login.page';
+import { LoginData } from '../test-data/LoginData.data';
 
 test.describe('Login to Bank', () => {
   test.beforeEach(async ({ page }) => {
@@ -9,9 +10,10 @@ test.describe('Login to Bank', () => {
 
   test('Successful login with correct credentials', async ({ page }) => {
     // Arrange
-    const userName = 'JanKowal';
-    const userPassword = 'JanKowal1234';
-    const expectedUserName = 'Jan Demobankowy';
+    const userName = LoginData.CorrectLogin.userName;
+    const userPassword = LoginData.CorrectLogin.userPassword;
+    const expectedUserName = LoginData.CorrectLogin.Message;
+
     const loginPage = new LoginPage(page);
 
     // Act
@@ -24,9 +26,10 @@ test.describe('Login to Bank', () => {
 
   test('Failed login with wrong login', async ({ page }) => {
     // Arrange
-    const incorrectuserName = 'tester';
-    const userPassword = 'JanKowal1234';
-    const expectedErrorMessage = 'identyfikator ma min. 8 znaków';
+    const incorrectuserName = LoginData.ShortLogin.userName;
+    const userPassword = LoginData.ShortLogin.userPassword;
+    const expectedErrorMessage = LoginData.ShortLogin.Message;
+
     const loginPage = new LoginPage(page);
     // Act
     await loginPage.login(incorrectuserName, userPassword);
@@ -40,9 +43,9 @@ test.describe('Login to Bank', () => {
 
   test('Failed login with wrong password', async ({ page }) => {
     // Arrange
-    const userName = 'ja';
-    const incorrectPassword = '1234';
-    const expectedErrorMessage = 'hasło ma min. 8 znaków';
+    const userName = LoginData.ShortPassword.userName;
+    const incorrectPassword = LoginData.ShortPassword.userPassword;
+    const expectedErrorMessage = LoginData.ShortPassword.Message;
     const loginPage = new LoginPage(page);
 
     // Act
