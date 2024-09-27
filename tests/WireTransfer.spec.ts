@@ -4,7 +4,7 @@ import { WireTransfer } from '../pages/WireTransfer.pages';
 import { LoginData } from '../test-data/LoginData.data';
 import { WireData } from '../test-data/WireData.data';
 
-test.describe('Login to Bank', () => {
+test.describe('Send quick wire', () => {
   test.beforeEach(async ({ page }) => {
     // Arrange
     const url = 'https://demo-bank.vercel.app/';
