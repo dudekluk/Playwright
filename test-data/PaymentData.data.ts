@@ -18,5 +18,5 @@ export const PaymentnData = {
     recipientName: '',
     bankAccount: '12 3333 3333 3333 3333 3333 33333',
     errorMessage: 'pole wymagane',
-    },
+  },
 };
