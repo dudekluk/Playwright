@@ -10,6 +10,8 @@ export class Payment {
   paymentTitle = this.page.getByTestId('form_title');
   paymentSent = this.page.getByRole('button', { name: 'wykonaj przelew' });
 
+
+
   async sendPayment(
     paymentAmount: string,
     paymentTitle: string,

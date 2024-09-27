@@ -1,8 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { LoginPage } from '../pages/Login.page';
-import { WireTransfer } from '../pages/WireTransfer.pages';
 import { LoginData } from '../test-data/LoginData.data';
-import { WireData } from '../test-data/WireData.data';
 import { Payment } from '../pages/Payments.pages';
 import { PaymentnData } from '../test-data/PaymentData.data';
 
@@ -62,7 +60,7 @@ test.describe('Send payment', () => {
     ).toContainText(errorMessage);
   });
 
-  test('Payment without prament recipient name', async ({ page }) => {
+  test('Payment without recipient name', async ({ page }) => {
     //Arrange
     const payment = new Payment(page);
     const recipientName = PaymentnData.EmptyName.recipientName;
