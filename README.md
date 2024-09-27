@@ -37,7 +37,7 @@ The primary goal of this project is to ensure the quality and reliability of the
  
 
 
-<h1>Example tests for playment method</h1> 
+<h1>Example tests for payment method</h1> 
 
 ### Payment tests (`Payments.pages.ts`)
 
