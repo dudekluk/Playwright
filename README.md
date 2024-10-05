@@ -43,33 +43,36 @@ The primary goal of this project is to ensure the quality and reliability of the
 
 ```javascript
 import { test, expect } from '@playwright/test';
-import { LoginPage } from '../pages/Login.page';
+import { Login } from '../pages/Login.page';
 import { LoginData } from '../test-data/LoginData.data';
 import { Payment } from '../pages/Payments.pages';
 import { PaymentnData } from '../test-data/PaymentData.data';
 
-test.describe('Send bank payment', () => {
+test.describe('Test sending bank transfer', () => {
+  let login: Login;
+  let payment: Payment;
   test.beforeEach(async ({ page }) => {
     // Arrange
-    const url = 'https://demo-bank.vercel.app/';
-    const loginPage = new LoginPage(page);
+    login = new Login(page);
+    payment = new Payment(page);
     const userName = LoginData.CorrectLogin.userName;
     const userPassword = LoginData.CorrectLogin.userPassword;
 
     //Act
-    await page.goto(url);
-    await loginPage.login(userName, userPassword);
-    await loginPage.loginButton.click();
+    await page.goto('/');
+    await login.LoginUser(userName, userPassword);
+    await login.elements.buttonLogin.click();
   });
 
   test('Payment with correct data', async ({ page }) => {
     //Arrange
-    const payment = new Payment(page);
     const recipientName = PaymentnData.CorrectPayment.recipientName;
     const bankAccount = PaymentnData.CorrectPayment.bankAccount;
     const paymentAmount = PaymentnData.CorrectPayment.paymentAmount;
     const paymentTitle = PaymentnData.CorrectPayment.paymentTitle;
+
     const expectedMessage = `Przelew wykonany!Odbiorca: ${recipientName}Kwota: ${paymentAmount},00PLN Nazwa: ${paymentTitle}`;
+
     //Act
     await payment.sendPayment(
       paymentAmount,
@@ -83,7 +86,6 @@ test.describe('Send bank payment', () => {
 
   test('Payment without bank account number', async ({ page }) => {
     //Arrange
-    const payment = new Payment(page);
     const recipientName = PaymentnData.EmptyAccount.recipientName;
     const bankAccount = PaymentnData.EmptyAccount.bankAccount;
     const paymentAmount = PaymentnData.EmptyAccount.paymentAmount;
@@ -106,7 +108,6 @@ test.describe('Send bank payment', () => {
 
   test('Payment without recipient name', async ({ page }) => {
     //Arrange
-    const payment = new Payment(page);
     const recipientName = PaymentnData.EmptyName.recipientName;
     const bankAccount = PaymentnData.EmptyName.bankAccount;
     const paymentAmount = PaymentnData.EmptyName.paymentAmount;
@@ -122,13 +123,12 @@ test.describe('Send bank payment', () => {
     );
     //Assert
 
-
-
     await expect(
       page.getByTestId('error-widget-4-transfer-receiver'),
     ).toContainText(errorMessage);
   });
 });
+
 ```
 
 
@@ -136,19 +136,24 @@ test.describe('Send bank payment', () => {
 ### Page Object Model (POM) for payment tests (`Payments.pages.ts`)
 
 ```javascript
-import { Page } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
 
 export class Payment {
-  constructor(private page: Page) {}
+  private page: Page;
+  public elements: Record<string, Locator>;
+  public paymentNavButton: Locator;
 
-  paymentClick = this.page.getByRole('link', { name: 'płatności' });
-  paymentRecipientName = this.page.getByTestId('transfer_receiver');
-  recipientBankAccount = this.page.getByTestId('form_account_to');
-  paymentAmountInput = this.page.getByTestId('form_amount');
-  paymentTitle = this.page.getByTestId('form_title');
-  paymentSent = this.page.getByRole('button', { name: 'wykonaj przelew' });
-
-
+  constructor(page: Page) {
+    this.page = page;
+    this.elements = {
+      recipientNameInput: this.page.getByTestId('transfer_receiver'),
+      bankAccountInput: this.page.getByTestId('form_account_to'),
+      amountInput: this.page.getByTestId('form_amount'),
+      titleInput: this.page.getByTestId('form_title'),
+      sendButton: this.page.getByRole('button', { name: 'wykonaj przelew' }),
+    };
+    this.paymentNavButton = page.getByRole('link', { name: 'płatności' });
+  }
 
   async sendPayment(
     paymentAmount: string,
@@ -156,14 +161,15 @@ export class Payment {
     recipientName: string,
     bankAccount: string,
   ) {
-    await this.paymentClick.click();
-    await this.paymentRecipientName.fill(recipientName);
-    await this.recipientBankAccount.fill(bankAccount);
-    await this.paymentAmountInput.fill(paymentAmount);
-    await this.paymentTitle.fill(paymentTitle);
-    await this.paymentSent.click();
+    await this.paymentNavButton.click();
+    await this.elements.recipientNameInput.fill(recipientName);
+    await this.elements.bankAccountInput.fill(bankAccount);
+    await this.elements.amountInput.fill(paymentAmount);
+    await this.elements.titleInput.fill(paymentTitle);
+    await this.elements.sendButton.click();
   }
 }
+
 
 ```
 
