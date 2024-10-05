@@ -1,16 +1,21 @@
-import { Page } from '@playwright/test';
+import { Locator, Page } from '@playwright/test';
 
 export class Payment {
-  constructor(private page: Page) {}
+  private page: Page;
+  public elements: Record<string, Locator>;
+  public paymentNavButton: Locator;
 
-  paymentClick = this.page.getByRole('link', { name: 'płatności' });
-  paymentRecipientName = this.page.getByTestId('transfer_receiver');
-  recipientBankAccount = this.page.getByTestId('form_account_to');
-  paymentAmountInput = this.page.getByTestId('form_amount');
-  paymentTitle = this.page.getByTestId('form_title');
-  paymentSent = this.page.getByRole('button', { name: 'wykonaj przelew' });
-
-
+  constructor(page: Page) {
+    this.page = page;
+    this.elements = {
+      recipientNameInput: this.page.getByTestId('transfer_receiver'),
+      bankAccountInput: this.page.getByTestId('form_account_to'),
+      amountInput: this.page.getByTestId('form_amount'),
+      titleInput: this.page.getByTestId('form_title'),
+      sendButton: this.page.getByRole('button', { name: 'wykonaj przelew' }),
+    };
+    this.paymentNavButton = page.getByRole('link', { name: 'płatności' });
+  }
 
   async sendPayment(
     paymentAmount: string,
@@ -18,11 +23,11 @@ export class Payment {
     recipientName: string,
     bankAccount: string,
   ) {
-    await this.paymentClick.click();
-    await this.paymentRecipientName.fill(recipientName);
-    await this.recipientBankAccount.fill(bankAccount);
-    await this.paymentAmountInput.fill(paymentAmount);
-    await this.paymentTitle.fill(paymentTitle);
-    await this.paymentSent.click();
+    await this.paymentNavButton.click();
+    await this.elements.recipientNameInput.fill(recipientName);
+    await this.elements.bankAccountInput.fill(bankAccount);
+    await this.elements.amountInput.fill(paymentAmount);
+    await this.elements.titleInput.fill(paymentTitle);
+    await this.elements.sendButton.click();
   }
 }

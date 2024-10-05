@@ -1,11 +1,13 @@
 import { test, expect } from '@playwright/test';
-import { LoginPage } from '../pages/Login.page';
+import { Login } from '../pages/Login.page';
 import { LoginData } from '../test-data/LoginData.data';
 
 test.describe('Login to Bank', () => {
+  let login: Login;
+
   test.beforeEach(async ({ page }) => {
-    const url = 'https://demo-bank.vercel.app/';
-    await page.goto(url);
+    login = new Login(page);
+    await page.goto('/');
   });
 
   test('Successful login with correct credentials', async ({ page }) => {
@@ -14,12 +16,9 @@ test.describe('Login to Bank', () => {
     const userPassword = LoginData.CorrectLogin.userPassword;
     const expectedUserName = LoginData.CorrectLogin.Message;
 
-    const loginPage = new LoginPage(page);
-
     // Act
-    await loginPage.login(userName, userPassword);
-    await loginPage.loginButton.click();
-
+    await login.LoginUser(userName, userPassword);
+    await login.elements.buttonLogin.click();
     // Assert
     await expect(page.getByTestId('user-name')).toHaveText(expectedUserName);
   });
@@ -30,10 +29,8 @@ test.describe('Login to Bank', () => {
     const userPassword = LoginData.ShortLogin.userPassword;
     const expectedErrorMessage = LoginData.ShortLogin.Message;
 
-    const loginPage = new LoginPage(page);
     // Act
-    await loginPage.login(incorrectuserName, userPassword);
-    await loginPage.loginInput.click();
+    await login.LoginUser(incorrectuserName, userPassword);
 
     // Assert
     await expect(page.getByTestId('error-login-id')).toHaveText(
@@ -46,11 +43,10 @@ test.describe('Login to Bank', () => {
     const userName = LoginData.ShortPassword.userName;
     const incorrectPassword = LoginData.ShortPassword.userPassword;
     const expectedErrorMessage = LoginData.ShortPassword.Message;
-    const loginPage = new LoginPage(page);
 
     // Act
-    await loginPage.login(userName, incorrectPassword);
-    await loginPage.passwordInput.blur();
+    await login.LoginUser(userName, incorrectPassword);
+    await login.elements.login.click();
 
     // Assert
     await expect(page.getByTestId('error-login-password')).toHaveText(

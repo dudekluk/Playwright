@@ -1,31 +1,34 @@
 import { test, expect } from '@playwright/test';
-import { LoginPage } from '../pages/Login.page';
+import { Login } from '../pages/Login.page';
 import { LoginData } from '../test-data/LoginData.data';
 import { Payment } from '../pages/Payments.pages';
 import { PaymentnData } from '../test-data/PaymentData.data';
 
-test.describe('Send payment', () => {
+test.describe('Test sending bank transfer', () => {
+  let login: Login;
+  let payment: Payment;
   test.beforeEach(async ({ page }) => {
     // Arrange
-    const url = 'https://demo-bank.vercel.app/';
-    const loginPage = new LoginPage(page);
+    login = new Login(page);
+    payment = new Payment(page);
     const userName = LoginData.CorrectLogin.userName;
     const userPassword = LoginData.CorrectLogin.userPassword;
 
     //Act
-    await page.goto(url);
-    await loginPage.login(userName, userPassword);
-    await loginPage.loginButton.click();
+    await page.goto('/');
+    await login.LoginUser(userName, userPassword);
+    await login.elements.buttonLogin.click();
   });
 
   test('Payment with correct data', async ({ page }) => {
     //Arrange
-    const payment = new Payment(page);
     const recipientName = PaymentnData.CorrectPayment.recipientName;
     const bankAccount = PaymentnData.CorrectPayment.bankAccount;
     const paymentAmount = PaymentnData.CorrectPayment.paymentAmount;
     const paymentTitle = PaymentnData.CorrectPayment.paymentTitle;
+
     const expectedMessage = `Przelew wykonany!Odbiorca: ${recipientName}Kwota: ${paymentAmount},00PLN Nazwa: ${paymentTitle}`;
+
     //Act
     await payment.sendPayment(
       paymentAmount,
@@ -39,7 +42,6 @@ test.describe('Send payment', () => {
 
   test('Payment without bank account number', async ({ page }) => {
     //Arrange
-    const payment = new Payment(page);
     const recipientName = PaymentnData.EmptyAccount.recipientName;
     const bankAccount = PaymentnData.EmptyAccount.bankAccount;
     const paymentAmount = PaymentnData.EmptyAccount.paymentAmount;
@@ -62,7 +64,6 @@ test.describe('Send payment', () => {
 
   test('Payment without recipient name', async ({ page }) => {
     //Arrange
-    const payment = new Payment(page);
     const recipientName = PaymentnData.EmptyName.recipientName;
     const bankAccount = PaymentnData.EmptyName.bankAccount;
     const paymentAmount = PaymentnData.EmptyName.paymentAmount;

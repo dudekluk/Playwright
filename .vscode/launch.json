@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "type": "node",
+        "request": "launch",
+        "name": "Launch Playwright Tests",
+        "skipFiles": ["<node_internals>/**"],
+        "program": "${workspaceFolder}\\app.js",
+        "args": ["--inspect-brk"],
+        "runtimeArgs": ["--inspect-brk"],
+        "env": {
+          "PLAYWRIGHT_BROWSERS": "chromium" // Adjust this to include the browsers you want to use
+        }
+        
+      }
+    ]
+  }
