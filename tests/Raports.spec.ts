@@ -21,7 +21,7 @@ test.describe('Test reports download and upload', () => {
     await raport.raportNavButton.click();
   });
 
-  test('Test download txt raport', async ({ page }) => {
+  test('Download txt raport', async ({ page }) => {
     // Arrange:
     const fileDir = 'C:/Projekts/Bank/Downloads/';
 
@@ -36,7 +36,7 @@ test.describe('Test reports download and upload', () => {
     await expect(download.suggestedFilename()).toBe('report-1.txt');
   });
 
-  test('Test download zip raport', async ({ page }) => {
+  test('Download zip raport', async ({ page }) => {
     // Arrange:
     const fileDir = 'C:/Projekts/Bank/Downloads/';
 
@@ -51,14 +51,15 @@ test.describe('Test reports download and upload', () => {
     await expect(download.suggestedFilename()).toBe('report-1.zip');
   });
 
-  test('Test upload txt raport', async ({ page }) => {
+  test('Upload txt raport', async ({ page }) => {
     // Arrange:
     const fileDir = 'C:/Projekts/Bank/Downloads/';
     const fileName = 'report-1.txt';
     const confirmMessage = `Plik przesłany! ${fileName}`;
 
     // Act:
-    await page.waitForTimeout(300);
+    // await page.waitForTimeout(300);
+    await page.waitForLoadState();
     await raport.elements.selectTextFile.setInputFiles(
       path.join(fileDir + fileName),
     );
