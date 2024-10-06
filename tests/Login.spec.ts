@@ -19,8 +19,9 @@ test.describe('Login to Bank', () => {
     // Act
     await login.LoginUser(userName, userPassword);
     await login.elements.buttonLogin.click();
+
     // Assert
-    await expect(page.getByTestId('user-name')).toHaveText(expectedUserName);
+    await expect(login.messages.confirmUserName).toHaveText(expectedUserName);
   });
 
   test('Failed login with wrong login', async ({ page }) => {
@@ -33,9 +34,7 @@ test.describe('Login to Bank', () => {
     await login.LoginUser(incorrectuserName, userPassword);
 
     // Assert
-    await expect(page.getByTestId('error-login-id')).toHaveText(
-      expectedErrorMessage,
-    );
+    await expect(login.messages.errorUserName).toHaveText(expectedErrorMessage);
   });
 
   test('Failed login with wrong password', async ({ page }) => {
@@ -49,7 +48,7 @@ test.describe('Login to Bank', () => {
     await login.elements.login.click();
 
     // Assert
-    await expect(page.getByTestId('error-login-password')).toHaveText(
+    await expect(login.messages.errorUserPassword).toHaveText(
       expectedErrorMessage,
     );
   });

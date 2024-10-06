@@ -45,89 +45,59 @@ The primary goal of this project is to ensure the quality and reliability of the
 import { test, expect } from '@playwright/test';
 import { Login } from '../pages/Login.page';
 import { LoginData } from '../test-data/LoginData.data';
-import { Payment } from '../pages/Payments.pages';
-import { PaymentnData } from '../test-data/PaymentData.data';
 
-test.describe('Test sending bank transfer', () => {
+test.describe('Login to Bank', () => {
   let login: Login;
-  let payment: Payment;
+
   test.beforeEach(async ({ page }) => {
-    // Arrange
     login = new Login(page);
-    payment = new Payment(page);
+    await page.goto('/');
+  });
+
+  test('Successful login with correct credentials', async ({ page }) => {
+    // Arrange
     const userName = LoginData.CorrectLogin.userName;
     const userPassword = LoginData.CorrectLogin.userPassword;
+    const expectedUserName = LoginData.CorrectLogin.Message;
 
-    //Act
-    await page.goto('/');
+    // Act
     await login.LoginUser(userName, userPassword);
     await login.elements.buttonLogin.click();
+
+    // Assert
+    await expect(login.messages.confirmUserName).toHaveText(expectedUserName);
   });
 
-  test('Payment with correct data', async ({ page }) => {
-    //Arrange
-    const recipientName = PaymentnData.CorrectPayment.recipientName;
-    const bankAccount = PaymentnData.CorrectPayment.bankAccount;
-    const paymentAmount = PaymentnData.CorrectPayment.paymentAmount;
-    const paymentTitle = PaymentnData.CorrectPayment.paymentTitle;
+  test('Failed login with wrong login', async ({ page }) => {
+    // Arrange
+    const incorrectuserName = LoginData.ShortLogin.userName;
+    const userPassword = LoginData.ShortLogin.userPassword;
+    const expectedErrorMessage = LoginData.ShortLogin.Message;
 
-    const expectedMessage = `Przelew wykonany!Odbiorca: ${recipientName}Kwota: ${paymentAmount},00PLN Nazwa: ${paymentTitle}`;
+    // Act
+    await login.LoginUser(incorrectuserName, userPassword);
 
-    //Act
-    await payment.sendPayment(
-      paymentAmount,
-      paymentTitle,
-      recipientName,
-      bankAccount,
-    );
-    //Assert
-    await expect(page.getByRole('paragraph')).toContainText(expectedMessage);
+    // Assert
+    await expect(login.messages.errorUserName).toHaveText(expectedErrorMessage);
   });
 
-  test('Payment without bank account number', async ({ page }) => {
-    //Arrange
-    const recipientName = PaymentnData.EmptyAccount.recipientName;
-    const bankAccount = PaymentnData.EmptyAccount.bankAccount;
-    const paymentAmount = PaymentnData.EmptyAccount.paymentAmount;
-    const paymentTitle = PaymentnData.EmptyAccount.paymentTitle;
-    const errorMessage = PaymentnData.EmptyAccount.errorMessage;
+  test('Failed login with wrong password', async ({ page }) => {
+    // Arrange
+    const userName = LoginData.ShortPassword.userName;
+    const incorrectPassword = LoginData.ShortPassword.userPassword;
+    const expectedErrorMessage = LoginData.ShortPassword.Message;
 
-    //Act
-    await payment.sendPayment(
-      paymentAmount,
-      paymentTitle,
-      recipientName,
-      bankAccount,
+    // Act
+    await login.LoginUser(userName, incorrectPassword);
+    await login.elements.login.click();
+
+    // Assert
+    await expect(login.messages.errorUserPassword).toHaveText(
+      expectedErrorMessage,
     );
-    //Assert
-
-    await expect(
-      page.getByTestId('error-widget-2-transfer-account'),
-    ).toContainText(errorMessage);
-  });
-
-  test('Payment without recipient name', async ({ page }) => {
-    //Arrange
-    const recipientName = PaymentnData.EmptyName.recipientName;
-    const bankAccount = PaymentnData.EmptyName.bankAccount;
-    const paymentAmount = PaymentnData.EmptyName.paymentAmount;
-    const paymentTitle = PaymentnData.EmptyName.paymentTitle;
-    const errorMessage = PaymentnData.EmptyName.errorMessage;
-
-    //Act
-    await payment.sendPayment(
-      paymentAmount,
-      paymentTitle,
-      recipientName,
-      bankAccount,
-    );
-    //Assert
-
-    await expect(
-      page.getByTestId('error-widget-4-transfer-receiver'),
-    ).toContainText(errorMessage);
   });
 });
+
 
 ```
 
@@ -138,35 +108,28 @@ test.describe('Test sending bank transfer', () => {
 ```javascript
 import { Locator, Page } from '@playwright/test';
 
-export class Payment {
+export class Login {
   private page: Page;
   public elements: Record<string, Locator>;
-  public paymentNavButton: Locator;
+  public messages: Record<string, Locator>;
 
   constructor(page: Page) {
     this.page = page;
     this.elements = {
-      recipientNameInput: this.page.getByTestId('transfer_receiver'),
-      bankAccountInput: this.page.getByTestId('form_account_to'),
-      amountInput: this.page.getByTestId('form_amount'),
-      titleInput: this.page.getByTestId('form_title'),
-      sendButton: this.page.getByRole('button', { name: 'wykonaj przelew' }),
+      login: this.page.getByTestId('login-input'),
+      password: this.page.getByTestId('password-input'),
+      buttonLogin: this.page.getByTestId('login-button'),
     };
-    this.paymentNavButton = page.getByRole('link', { name: 'płatności' });
+    this.messages = {
+      confirmUserName: this.page.getByTestId('user-name'),
+      errorUserName: this.page.getByTestId('error-login-id'),
+      errorUserPassword: this.page.getByTestId('error-login-password'),
+    };
   }
 
-  async sendPayment(
-    paymentAmount: string,
-    paymentTitle: string,
-    recipientName: string,
-    bankAccount: string,
-  ) {
-    await this.paymentNavButton.click();
-    await this.elements.recipientNameInput.fill(recipientName);
-    await this.elements.bankAccountInput.fill(bankAccount);
-    await this.elements.amountInput.fill(paymentAmount);
-    await this.elements.titleInput.fill(paymentTitle);
-    await this.elements.sendButton.click();
+  async LoginUser(userLogin: string, userPassword: string) {
+    await this.elements.login.fill(userLogin);
+    await this.elements.password.fill(userPassword);
   }
 }
 
