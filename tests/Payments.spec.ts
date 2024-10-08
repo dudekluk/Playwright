@@ -16,8 +16,7 @@ test.describe('Test sending bank transfer', () => {
 
     //Act
     await page.goto('/');
-    await login.LoginUser(userName, userPassword);
-    await login.elements.buttonLogin.click();
+    await login.loginWithCredentials(userName, userPassword);
   });
 
   test('Payment with correct data', async ({ page }) => {
@@ -37,7 +36,9 @@ test.describe('Test sending bank transfer', () => {
       bankAccount,
     );
     //Assert
-    await expect(page.getByRole('paragraph')).toContainText(expectedMessage);
+    await expect(payment.messages.successPayment).toContainText(
+      expectedMessage,
+    );
   });
 
   test('Payment without bank account number', async ({ page }) => {
@@ -57,9 +58,7 @@ test.describe('Test sending bank transfer', () => {
     );
     //Assert
 
-    await expect(
-      page.getByTestId('error-widget-2-transfer-account'),
-    ).toContainText(errorMessage);
+    await expect(payment.messages.errorBankAccount).toContainText(errorMessage);
   });
 
   test('Payment without recipient name', async ({ page }) => {
@@ -79,8 +78,6 @@ test.describe('Test sending bank transfer', () => {
     );
     //Assert
 
-    await expect(
-      page.getByTestId('error-widget-4-transfer-receiver'),
-    ).toContainText(errorMessage);
+    await expect(payment.messages.errorRecipientName).toContainText(errorMessage);
   });
 });

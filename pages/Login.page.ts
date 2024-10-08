@@ -8,19 +8,24 @@ export class Login {
   constructor(page: Page) {
     this.page = page;
     this.elements = {
-      login: this.page.getByTestId('login-input'),
-      password: this.page.getByTestId('password-input'),
-      buttonLogin: this.page.getByTestId('login-button'),
+      loginInput: this.page.getByTestId('login-input'),
+      passwordInput: this.page.getByTestId('password-input'),
+      loginButton: this.page.getByTestId('login-button'),
     };
     this.messages = {
-      confirmUserName: this.page.getByTestId('user-name'),
-      errorUserName: this.page.getByTestId('error-login-id'),
-      errorUserPassword: this.page.getByTestId('error-login-password'),
+      successLogin: this.page.getByTestId('user-name'),
+      errorLoginId: this.page.getByTestId('error-login-id'),
+      errorLoginPassword: this.page.getByTestId('error-login-password'),
     };
   }
 
   async LoginUser(userLogin: string, userPassword: string) {
-    await this.elements.login.fill(userLogin);
-    await this.elements.password.fill(userPassword);
+    await this.elements.loginInput.fill(userLogin);
+    await this.elements.passwordInput.fill(userPassword);
+  }
+
+  async loginWithCredentials(username: string, password: string) {
+    await this.LoginUser(username, password);
+    await this.elements.loginButton.click();
   }
 }

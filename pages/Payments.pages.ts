@@ -3,6 +3,7 @@ import { Locator, Page } from '@playwright/test';
 export class Payment {
   private page: Page;
   public elements: Record<string, Locator>;
+  public messages: Record<string, Locator>;
   public paymentNavButton: Locator;
 
   constructor(page: Page) {
@@ -13,6 +14,15 @@ export class Payment {
       amountInput: this.page.getByTestId('form_amount'),
       titleInput: this.page.getByTestId('form_title'),
       sendButton: this.page.getByRole('button', { name: 'wykonaj przelew' }),
+    };
+    this.messages = {
+      successPayment: this.page.getByRole('paragraph'),
+      errorBankAccount: this.page.getByTestId(
+        'error-widget-2-transfer-account',
+      ),
+      errorRecipientName: this.page.getByTestId(
+        'error-widget-4-transfer-receiver',
+      ),
     };
     this.paymentNavButton = page.getByRole('link', { name: 'płatności' });
   }

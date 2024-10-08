@@ -17,8 +17,7 @@ test.describe('Test option to send quick wire transfer', () => {
 
     //Act
     await page.goto('/');
-    await login.LoginUser(userName, userPassword);
-    await login.elements.buttonLogin.click();
+    await login.loginWithCredentials(userName, userPassword);
   });
 
   test('Wire transfer with correct data', async ({ page }) => {

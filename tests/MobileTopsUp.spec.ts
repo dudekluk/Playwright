@@ -16,8 +16,7 @@ test.describe('Test mobile phone top up', () => {
 
     // Act:
     await page.goto('/');
-    await login.LoginUser(userName, userPassword);
-    await login.elements.buttonLogin.click();
+    await login.loginWithCredentials(userName, userPassword);
     await phoneTopUp.phoneNavButton.click();
   });
 
