@@ -16,6 +16,8 @@ The primary goal of this project is to ensure the quality and reliability of the
 3. Validate password strength requirements.
 4. Test the quick wire option.
 5. Test bank wire functionality with full information.
+6. Downlad and upload reports.
+7. Mobile phone top ups.
 
 ### Testing Environment
 
@@ -39,62 +41,90 @@ The primary goal of this project is to ensure the quality and reliability of the
 
 <h1>Example tests for payment method</h1> 
 
-### Payment tests (`Payments.pages.ts`)
+### Payment tests (`Payments.spec.ts`)
 
 ```javascript
 import { test, expect } from '@playwright/test';
 import { Login } from '../pages/Login.page';
 import { LoginData } from '../test-data/LoginData.data';
+import { Payment } from '../pages/Payments.pages';
+import { PaymentnData } from '../test-data/PaymentData.data';
 
-test.describe('Login to Bank', () => {
+test.describe('Test sending bank transfer', () => {
   let login: Login;
-
+  let payment: Payment;
   test.beforeEach(async ({ page }) => {
-    login = new Login(page);
-    await page.goto('/');
-  });
-
-  test('Successful login with correct credentials', async ({ page }) => {
     // Arrange
+    login = new Login(page);
+    payment = new Payment(page);
     const userName = LoginData.CorrectLogin.userName;
     const userPassword = LoginData.CorrectLogin.userPassword;
-    const expectedUserName = LoginData.CorrectLogin.Message;
 
-    // Act
-    await login.LoginUser(userName, userPassword);
-    await login.elements.buttonLogin.click();
-
-    // Assert
-    await expect(login.messages.confirmUserName).toHaveText(expectedUserName);
+    //Act
+    await page.goto('/');
+    await login.loginWithCredentials(userName, userPassword);
   });
 
-  test('Failed login with wrong login', async ({ page }) => {
-    // Arrange
-    const incorrectuserName = LoginData.ShortLogin.userName;
-    const userPassword = LoginData.ShortLogin.userPassword;
-    const expectedErrorMessage = LoginData.ShortLogin.Message;
+  test('Payment with correct data', async ({ page }) => {
+    //Arrange
+    const recipientName = PaymentnData.CorrectPayment.recipientName;
+    const bankAccount = PaymentnData.CorrectPayment.bankAccount;
+    const paymentAmount = PaymentnData.CorrectPayment.paymentAmount;
+    const paymentTitle = PaymentnData.CorrectPayment.paymentTitle;
 
-    // Act
-    await login.LoginUser(incorrectuserName, userPassword);
+    const expectedMessage = `Przelew wykonany!Odbiorca: ${recipientName}Kwota: ${paymentAmount},00PLN Nazwa: ${paymentTitle}`;
 
-    // Assert
-    await expect(login.messages.errorUserName).toHaveText(expectedErrorMessage);
-  });
-
-  test('Failed login with wrong password', async ({ page }) => {
-    // Arrange
-    const userName = LoginData.ShortPassword.userName;
-    const incorrectPassword = LoginData.ShortPassword.userPassword;
-    const expectedErrorMessage = LoginData.ShortPassword.Message;
-
-    // Act
-    await login.LoginUser(userName, incorrectPassword);
-    await login.elements.login.click();
-
-    // Assert
-    await expect(login.messages.errorUserPassword).toHaveText(
-      expectedErrorMessage,
+    //Act
+    await payment.sendPayment(
+      paymentAmount,
+      paymentTitle,
+      recipientName,
+      bankAccount,
     );
+    //Assert
+    await expect(payment.messages.successPayment).toContainText(
+      expectedMessage,
+    );
+  });
+
+  test('Payment without bank account number', async ({ page }) => {
+    //Arrange
+    const recipientName = PaymentnData.EmptyAccount.recipientName;
+    const bankAccount = PaymentnData.EmptyAccount.bankAccount;
+    const paymentAmount = PaymentnData.EmptyAccount.paymentAmount;
+    const paymentTitle = PaymentnData.EmptyAccount.paymentTitle;
+    const errorMessage = PaymentnData.EmptyAccount.errorMessage;
+
+    //Act
+    await payment.sendPayment(
+      paymentAmount,
+      paymentTitle,
+      recipientName,
+      bankAccount,
+    );
+    //Assert
+
+    await expect(payment.messages.errorBankAccount).toContainText(errorMessage);
+  });
+
+  test('Payment without recipient name', async ({ page }) => {
+    //Arrange
+    const recipientName = PaymentnData.EmptyName.recipientName;
+    const bankAccount = PaymentnData.EmptyName.bankAccount;
+    const paymentAmount = PaymentnData.EmptyName.paymentAmount;
+    const paymentTitle = PaymentnData.EmptyName.paymentTitle;
+    const errorMessage = PaymentnData.EmptyName.errorMessage;
+
+    //Act
+    await payment.sendPayment(
+      paymentAmount,
+      paymentTitle,
+      recipientName,
+      bankAccount,
+    );
+    //Assert
+
+    await expect(payment.messages.errorRecipientName).toContainText(errorMessage);
   });
 });
 
@@ -108,28 +138,45 @@ test.describe('Login to Bank', () => {
 ```javascript
 import { Locator, Page } from '@playwright/test';
 
-export class Login {
+export class Payment {
   private page: Page;
   public elements: Record<string, Locator>;
   public messages: Record<string, Locator>;
+  public paymentNavButton: Locator;
 
   constructor(page: Page) {
     this.page = page;
     this.elements = {
-      login: this.page.getByTestId('login-input'),
-      password: this.page.getByTestId('password-input'),
-      buttonLogin: this.page.getByTestId('login-button'),
+      recipientNameInput: this.page.getByTestId('transfer_receiver'),
+      bankAccountInput: this.page.getByTestId('form_account_to'),
+      amountInput: this.page.getByTestId('form_amount'),
+      titleInput: this.page.getByTestId('form_title'),
+      sendButton: this.page.getByRole('button', { name: 'wykonaj przelew' }),
     };
     this.messages = {
-      confirmUserName: this.page.getByTestId('user-name'),
-      errorUserName: this.page.getByTestId('error-login-id'),
-      errorUserPassword: this.page.getByTestId('error-login-password'),
+      successPayment: this.page.getByRole('paragraph'),
+      errorBankAccount: this.page.getByTestId(
+        'error-widget-2-transfer-account',
+      ),
+      errorRecipientName: this.page.getByTestId(
+        'error-widget-4-transfer-receiver',
+      ),
     };
+    this.paymentNavButton = page.getByRole('link', { name: 'płatności' });
   }
 
-  async LoginUser(userLogin: string, userPassword: string) {
-    await this.elements.login.fill(userLogin);
-    await this.elements.password.fill(userPassword);
+  async sendPayment(
+    paymentAmount: string,
+    paymentTitle: string,
+    recipientName: string,
+    bankAccount: string,
+  ) {
+    await this.paymentNavButton.click();
+    await this.elements.recipientNameInput.fill(recipientName);
+    await this.elements.bankAccountInput.fill(bankAccount);
+    await this.elements.amountInput.fill(paymentAmount);
+    await this.elements.titleInput.fill(paymentTitle);
+    await this.elements.sendButton.click();
   }
 }
 
@@ -144,22 +191,23 @@ export const PaymentnData = {
     paymentAmount: '200',
     paymentTitle: 'Przelew za robotę',
     recipientName: 'Marek',
-    bankAccount: '12 3333 3333 3333 3333 3333 33333',
+    bankAccount: '12 3456 7890 1234 5678 9012 3456 7890',
   },
   EmptyAccount: {
-    paymentAmount: '200',
-    paymentTitle: 'Przelew za robotę',
-    recipientName: 'Marek',
+    paymentAmount: '4500',
+    paymentTitle: 'Wypłata za mieś czerwiec',
+    recipientName: 'Łukasz',
     bankAccount: '',
     errorMessage: 'pole wymagane',
   },
   EmptyName: {
-    paymentAmount: '200',
-    paymentTitle: 'Przelew za robotę',
+    paymentAmount: '150',
+    paymentTitle: 'Zakup artykułów spożywczych',
     recipientName: '',
-    bankAccount: '12 3333 3333 3333 3333 3333 33333',
+    bankAccount: '12 3456 7890 1234 5678 9012 3456 7890',
     errorMessage: 'pole wymagane',
   },
 };
+
 
 ```
